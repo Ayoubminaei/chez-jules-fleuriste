@@ -66,6 +66,12 @@ create table if not exists public.categories (
   position int not null default 0,
   created_at timestamptz not null default now()
 );
+alter table public.categories add column if not exists slug text;
+alter table public.categories add column if not exists name text;
+alter table public.categories add column if not exists description text;
+alter table public.categories add column if not exists image_url text;
+alter table public.categories add column if not exists position int not null default 0;
+alter table public.categories add column if not exists created_at timestamptz not null default now();
 
 -- ---------- Products ----------
 create table if not exists public.products (
@@ -89,6 +95,27 @@ create table if not exists public.products (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- Defensive: backfill columns if products pre-existed.
+alter table public.products add column if not exists slug text;
+alter table public.products add column if not exists name text;
+alter table public.products add column if not exists description text;
+alter table public.products add column if not exists price_cents int not null default 0;
+alter table public.products add column if not exists compare_at_cents int;
+alter table public.products add column if not exists category_id uuid references public.categories(id) on delete set null;
+alter table public.products add column if not exists occasions text[] not null default '{}';
+alter table public.products add column if not exists colors text[] not null default '{}';
+alter table public.products add column if not exists stock int not null default 0;
+alter table public.products add column if not exists is_featured boolean not null default false;
+alter table public.products add column if not exists is_new boolean not null default false;
+alter table public.products add column if not exists is_active boolean not null default true;
+alter table public.products add column if not exists image_url text;
+alter table public.products add column if not exists search_doc tsvector
+  generated always as (
+    to_tsvector('french', coalesce(name,'') || ' ' || coalesce(description,''))
+  ) stored;
+alter table public.products add column if not exists created_at timestamptz not null default now();
+alter table public.products add column if not exists updated_at timestamptz not null default now();
+
 create index if not exists products_category_idx on public.products(category_id);
 create index if not exists products_search_idx on public.products using gin(search_doc);
 create index if not exists products_occasions_idx on public.products using gin(occasions);
@@ -105,6 +132,10 @@ create table if not exists public.product_images (
   alt text,
   position int not null default 0
 );
+alter table public.product_images add column if not exists product_id uuid references public.products(id) on delete cascade;
+alter table public.product_images add column if not exists url text;
+alter table public.product_images add column if not exists alt text;
+alter table public.product_images add column if not exists position int not null default 0;
 create index if not exists product_images_product_idx on public.product_images(product_id);
 
 -- ---------- Addresses ----------
@@ -120,6 +151,15 @@ create table if not exists public.addresses (
   is_default boolean not null default false,
   created_at timestamptz not null default now()
 );
+alter table public.addresses add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.addresses add column if not exists full_name text;
+alter table public.addresses add column if not exists street text;
+alter table public.addresses add column if not exists city text;
+alter table public.addresses add column if not exists postal_code text;
+alter table public.addresses add column if not exists country text not null default 'FR';
+alter table public.addresses add column if not exists phone text;
+alter table public.addresses add column if not exists is_default boolean not null default false;
+alter table public.addresses add column if not exists created_at timestamptz not null default now();
 create index if not exists addresses_user_idx on public.addresses(user_id);
 
 -- ---------- Promo codes ----------
@@ -136,6 +176,16 @@ create table if not exists public.promo_codes (
   is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
+alter table public.promo_codes add column if not exists code text;
+alter table public.promo_codes add column if not exists kind text;
+alter table public.promo_codes add column if not exists amount int;
+alter table public.promo_codes add column if not exists min_subtotal_cents int not null default 0;
+alter table public.promo_codes add column if not exists starts_at timestamptz;
+alter table public.promo_codes add column if not exists ends_at timestamptz;
+alter table public.promo_codes add column if not exists max_redemptions int;
+alter table public.promo_codes add column if not exists redemptions int not null default 0;
+alter table public.promo_codes add column if not exists is_active boolean not null default true;
+alter table public.promo_codes add column if not exists created_at timestamptz not null default now();
 
 -- ---------- Orders ----------
 create table if not exists public.orders (
@@ -159,6 +209,22 @@ create table if not exists public.orders (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.orders add column if not exists user_id uuid references auth.users(id) on delete set null;
+alter table public.orders add column if not exists status text not null default 'pending';
+alter table public.orders add column if not exists subtotal_cents int not null default 0;
+alter table public.orders add column if not exists shipping_cents int not null default 0;
+alter table public.orders add column if not exists discount_cents int not null default 0;
+alter table public.orders add column if not exists total_cents int not null default 0;
+alter table public.orders add column if not exists currency text not null default 'EUR';
+alter table public.orders add column if not exists delivery_method text not null default 'shipping';
+alter table public.orders add column if not exists delivery_at timestamptz;
+alter table public.orders add column if not exists delivery_address_id uuid references public.addresses(id) on delete set null;
+alter table public.orders add column if not exists promo_code_id uuid references public.promo_codes(id) on delete set null;
+alter table public.orders add column if not exists stripe_session_id text;
+alter table public.orders add column if not exists stripe_payment_intent_id text;
+alter table public.orders add column if not exists notes text;
+alter table public.orders add column if not exists created_at timestamptz not null default now();
+alter table public.orders add column if not exists updated_at timestamptz not null default now();
 create index if not exists orders_user_idx on public.orders(user_id);
 create index if not exists orders_status_idx on public.orders(status);
 drop trigger if exists orders_updated_at on public.orders;
@@ -175,6 +241,12 @@ create table if not exists public.order_items (
   quantity int not null check (quantity > 0),
   size text
 );
+alter table public.order_items add column if not exists order_id uuid references public.orders(id) on delete cascade;
+alter table public.order_items add column if not exists product_id uuid references public.products(id) on delete set null;
+alter table public.order_items add column if not exists product_name text;
+alter table public.order_items add column if not exists unit_price_cents int;
+alter table public.order_items add column if not exists quantity int;
+alter table public.order_items add column if not exists size text;
 create index if not exists order_items_order_idx on public.order_items(order_id);
 
 -- ---------- Wishlist ----------
@@ -184,6 +256,9 @@ create table if not exists public.wishlist_items (
   created_at timestamptz not null default now(),
   primary key (user_id, product_id)
 );
+alter table public.wishlist_items add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.wishlist_items add column if not exists product_id uuid references public.products(id) on delete cascade;
+alter table public.wishlist_items add column if not exists created_at timestamptz not null default now();
 
 -- ---------- Reviews ----------
 create table if not exists public.reviews (
@@ -196,6 +271,13 @@ create table if not exists public.reviews (
   is_approved boolean not null default false,
   created_at timestamptz not null default now()
 );
+alter table public.reviews add column if not exists product_id uuid references public.products(id) on delete cascade;
+alter table public.reviews add column if not exists user_id uuid references auth.users(id) on delete set null;
+alter table public.reviews add column if not exists rating int;
+alter table public.reviews add column if not exists title text;
+alter table public.reviews add column if not exists body text;
+alter table public.reviews add column if not exists is_approved boolean not null default false;
+alter table public.reviews add column if not exists created_at timestamptz not null default now();
 create index if not exists reviews_product_idx on public.reviews(product_id);
 
 -- ---------- Banners ----------
@@ -212,6 +294,16 @@ create table if not exists public.banners (
   position int not null default 0,
   created_at timestamptz not null default now()
 );
+alter table public.banners add column if not exists title text;
+alter table public.banners add column if not exists subtitle text;
+alter table public.banners add column if not exists cta_label text;
+alter table public.banners add column if not exists cta_href text;
+alter table public.banners add column if not exists image_url text;
+alter table public.banners add column if not exists is_active boolean not null default true;
+alter table public.banners add column if not exists starts_at timestamptz;
+alter table public.banners add column if not exists ends_at timestamptz;
+alter table public.banners add column if not exists position int not null default 0;
+alter table public.banners add column if not exists created_at timestamptz not null default now();
 
 -- ---------- Subscriptions ----------
 create table if not exists public.subscriptions (
@@ -225,6 +317,14 @@ create table if not exists public.subscriptions (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.subscriptions add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.subscriptions add column if not exists plan text;
+alter table public.subscriptions add column if not exists cadence text;
+alter table public.subscriptions add column if not exists status text not null default 'active';
+alter table public.subscriptions add column if not exists stripe_subscription_id text;
+alter table public.subscriptions add column if not exists next_delivery_at timestamptz;
+alter table public.subscriptions add column if not exists created_at timestamptz not null default now();
+alter table public.subscriptions add column if not exists updated_at timestamptz not null default now();
 create index if not exists subscriptions_user_idx on public.subscriptions(user_id);
 drop trigger if exists subscriptions_updated_at on public.subscriptions;
 create trigger subscriptions_updated_at before update on public.subscriptions
