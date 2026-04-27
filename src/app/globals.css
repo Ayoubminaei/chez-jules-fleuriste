@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #faf7f2;
+  --color-forest: #2f4a3a;
+  --color-forest-soft: #3d5e4a;
+  --color-sage: #8fa896;
+  --color-sage-soft: #b9c9be;
+  --color-terracotta: #c97b63;
+  --color-bloom: #e8b4a0;
+  --color-cream: #fffbf3;
+  --color-ink: #1d2a23;
+  --color-mute: #6b7268;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  --radius-soft: 1.25rem;
+  --radius-frame: 2rem;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-forest) 25%, transparent);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  .snap-x-mandatory {
+    scroll-snap-type: x mandatory;
+  }
+  .snap-y-mandatory {
+    scroll-snap-type: y mandatory;
+  }
+  .snap-start-2 {
+    scroll-snap-align: start;
+  }
+  .snap-center-2 {
+    scroll-snap-align: center;
+  }
+
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: multiply;
+    background-image: radial-gradient(
+        rgba(0, 0, 0, 0.4) 1px,
+        transparent 1px
+      );
+    background-size: 3px 3px;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ringPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.9;
+  }
+}
+
+.animate-fadeUp {
+  animation: fadeUp 0.7s ease-out both;
+}
+.animate-ringPulse {
+  animation: ringPulse 3s ease-in-out infinite;
+}
