@@ -22,6 +22,15 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Defensive: if the table already existed (Supabase templates), backfill columns.
+alter table public.profiles add column if not exists email text;
+alter table public.profiles add column if not exists full_name text;
+alter table public.profiles add column if not exists is_admin boolean not null default false;
+alter table public.profiles add column if not exists created_at timestamptz not null default now();
+alter table public.profiles add column if not exists updated_at timestamptz not null default now();
+
+drop trigger if exists profiles_updated_at on public.profiles;
 create trigger profiles_updated_at before update on public.profiles
   for each row execute function public.set_updated_at();
 
@@ -84,6 +93,7 @@ create index if not exists products_category_idx on public.products(category_id)
 create index if not exists products_search_idx on public.products using gin(search_doc);
 create index if not exists products_occasions_idx on public.products using gin(occasions);
 create index if not exists products_colors_idx on public.products using gin(colors);
+drop trigger if exists products_updated_at on public.products;
 create trigger products_updated_at before update on public.products
   for each row execute function public.set_updated_at();
 
@@ -151,6 +161,7 @@ create table if not exists public.orders (
 );
 create index if not exists orders_user_idx on public.orders(user_id);
 create index if not exists orders_status_idx on public.orders(status);
+drop trigger if exists orders_updated_at on public.orders;
 create trigger orders_updated_at before update on public.orders
   for each row execute function public.set_updated_at();
 
@@ -215,6 +226,7 @@ create table if not exists public.subscriptions (
   updated_at timestamptz not null default now()
 );
 create index if not exists subscriptions_user_idx on public.subscriptions(user_id);
+drop trigger if exists subscriptions_updated_at on public.subscriptions;
 create trigger subscriptions_updated_at before update on public.subscriptions
   for each row execute function public.set_updated_at();
 
@@ -234,38 +246,54 @@ alter table public.reviews         enable row level security;
 alter table public.banners         enable row level security;
 alter table public.subscriptions   enable row level security;
 
--- Profiles: each user reads/updates their own; admins read all.
+-- Profiles
+drop policy if exists "profiles_self_select" on public.profiles;
 create policy "profiles_self_select" on public.profiles
   for select using (auth.uid() = id or public.is_admin());
+drop policy if exists "profiles_self_update" on public.profiles;
 create policy "profiles_self_update" on public.profiles
   for update using (auth.uid() = id) with check (auth.uid() = id);
 
--- Public reads on catalog content.
+-- Public reads on catalog content
+drop policy if exists "categories_public_read" on public.categories;
 create policy "categories_public_read" on public.categories for select using (true);
+drop policy if exists "products_public_read" on public.products;
 create policy "products_public_read"   on public.products   for select using (is_active or public.is_admin());
+drop policy if exists "product_images_public_read" on public.product_images;
 create policy "product_images_public_read" on public.product_images for select using (true);
+drop policy if exists "banners_public_read" on public.banners;
 create policy "banners_public_read"    on public.banners    for select using (
   is_active and (starts_at is null or starts_at <= now()) and (ends_at is null or ends_at > now())
 );
 
--- Admin writes for catalog/banners.
+-- Admin writes
+drop policy if exists "categories_admin_write" on public.categories;
 create policy "categories_admin_write" on public.categories for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "products_admin_write" on public.products;
 create policy "products_admin_write"   on public.products   for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "product_images_admin_write" on public.product_images;
 create policy "product_images_admin_write" on public.product_images for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "banners_admin_write" on public.banners;
 create policy "banners_admin_write"    on public.banners    for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "promo_codes_public_validate" on public.promo_codes;
 create policy "promo_codes_public_validate" on public.promo_codes for select using (is_active);
+drop policy if exists "promo_codes_admin_write" on public.promo_codes;
 create policy "promo_codes_admin_write" on public.promo_codes for all using (public.is_admin()) with check (public.is_admin());
 
--- Addresses owned by their user.
+-- Addresses
+drop policy if exists "addresses_self_all" on public.addresses;
 create policy "addresses_self_all" on public.addresses
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- Orders: customer reads own; admin reads all; insert via server.
+-- Orders
+drop policy if exists "orders_self_select" on public.orders;
 create policy "orders_self_select" on public.orders
   for select using (auth.uid() = user_id or public.is_admin());
+drop policy if exists "orders_admin_write" on public.orders;
 create policy "orders_admin_write" on public.orders
   for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "order_items_self_select" on public.order_items;
 create policy "order_items_self_select" on public.order_items
   for select using (
     exists (
@@ -274,25 +302,33 @@ create policy "order_items_self_select" on public.order_items
         and (o.user_id = auth.uid() or public.is_admin())
     )
   );
+drop policy if exists "order_items_admin_write" on public.order_items;
 create policy "order_items_admin_write" on public.order_items
   for all using (public.is_admin()) with check (public.is_admin());
 
 -- Wishlist
+drop policy if exists "wishlist_self_all" on public.wishlist_items;
 create policy "wishlist_self_all" on public.wishlist_items
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- Reviews: public reads approved; user inserts own; admin moderates.
+-- Reviews
+drop policy if exists "reviews_public_read" on public.reviews;
 create policy "reviews_public_read" on public.reviews
   for select using (is_approved or auth.uid() = user_id or public.is_admin());
+drop policy if exists "reviews_self_insert" on public.reviews;
 create policy "reviews_self_insert" on public.reviews
   for insert with check (auth.uid() = user_id);
+drop policy if exists "reviews_admin_write" on public.reviews;
 create policy "reviews_admin_write" on public.reviews
   for update using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "reviews_admin_delete" on public.reviews;
 create policy "reviews_admin_delete" on public.reviews
   for delete using (public.is_admin());
 
 -- Subscriptions
+drop policy if exists "subscriptions_self_select" on public.subscriptions;
 create policy "subscriptions_self_select" on public.subscriptions
   for select using (auth.uid() = user_id or public.is_admin());
+drop policy if exists "subscriptions_admin_write" on public.subscriptions;
 create policy "subscriptions_admin_write" on public.subscriptions
   for all using (public.is_admin()) with check (public.is_admin());
