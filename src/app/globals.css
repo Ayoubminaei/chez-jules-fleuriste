@@ -112,6 +112,12 @@
   }
 }
 
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 .animate-fadeUp {
   animation: fadeUp 0.7s ease-out both;
 }

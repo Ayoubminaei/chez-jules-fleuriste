@@ -47,7 +47,7 @@ export default function HomePage() {
                   Voir les bouquets <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  href="/categorie/abonnements"
+                  href="/abonnements"
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/40 text-white hover:bg-white/10 transition-colors"
                 >
                   Abonnements
@@ -145,7 +145,7 @@ export default function HomePage() {
             </p>
             <div className="mt-6">
               <Link
-                href="/categorie/abonnements"
+                href="/abonnements"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[color:var(--color-cream)] text-[color:var(--color-forest)] hover:bg-white transition-colors w-fit"
               >
                 Découvrir les formules <ArrowRight className="w-4 h-4" />

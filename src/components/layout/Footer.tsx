@@ -35,7 +35,7 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/categorie/abonnements" className="hover:underline">
+              <Link href="/abonnements" className="hover:underline">
                 Abonnements
               </Link>
             </li>

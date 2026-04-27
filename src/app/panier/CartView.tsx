@@ -2,13 +2,42 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Minus, Plus, Trash2, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { Minus, Plus, Trash2, ArrowRight, Loader2 } from "lucide-react";
 import { useCart } from "@/lib/store";
 import { getProduct } from "@/lib/data";
 import { formatPrice } from "@/lib/utils";
 
 export function CartView() {
   const { items, setQty, remove, clear, hydrated } = useCart();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function checkout() {
+    setError(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        // Stripe not configured yet → fall back to placeholder page.
+        if (res.status === 503) {
+          window.location.href = "/checkout";
+          return;
+        }
+        throw new Error(json.error || "Erreur");
+      }
+      if (json.url) window.location.href = json.url;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur inconnue");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (!hydrated) {
     return (
@@ -161,12 +190,27 @@ export function CartView() {
               {formatPrice(total)}
             </span>
           </div>
-          <Link
-            href="/checkout"
-            className="mt-6 w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full bg-[color:var(--color-forest)] text-[color:var(--color-cream)] hover:bg-[color:var(--color-forest-soft)] transition-colors"
+          <button
+            type="button"
+            onClick={checkout}
+            disabled={submitting}
+            className="mt-6 w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full bg-[color:var(--color-forest)] text-[color:var(--color-cream)] hover:bg-[color:var(--color-forest-soft)] transition-colors disabled:opacity-60"
           >
-            Passer commande <ArrowRight className="w-4 h-4" />
-          </Link>
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Redirection…
+              </>
+            ) : (
+              <>
+                Passer commande <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+          {error && (
+            <p className="mt-2 text-xs text-[color:var(--color-terracotta)]">
+              {error}
+            </p>
+          )}
           <p className="mt-3 text-[11px] text-[color:var(--color-mute)] text-center">
             Paiement sécurisé Stripe · TVA incluse
           </p>

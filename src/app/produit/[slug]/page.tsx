@@ -26,7 +26,16 @@ export async function generateMetadata({
   const { slug } = await params;
   const p = getProduct(slug);
   if (!p) return {};
-  return { title: p.name, description: p.description };
+  return {
+    title: p.name,
+    description: p.description,
+    openGraph: {
+      title: p.name,
+      description: p.description,
+      type: "website",
+      images: p.images.slice(0, 1),
+    },
+  };
 }
 
 export default async function ProductPage({
@@ -44,8 +53,36 @@ export default async function ProductPage({
     .filter((p) => p.categorySlug === product.categorySlug && p.slug !== slug)
     .slice(0, 4);
 
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://chez-jules.fr";
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.longDescription,
+    image: product.images,
+    sku: product.slug,
+    category: cat?.name,
+    brand: { "@type": "Brand", name: "Chez Jules" },
+    offers: {
+      "@type": "Offer",
+      url: `${base}/produit/${product.slug}`,
+      priceCurrency: "EUR",
+      price: (product.priceCents / 100).toFixed(2),
+      availability: product.inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <section className="mx-auto max-w-7xl px-5 lg:px-10 mt-6">
         <nav className="text-xs text-[color:var(--color-mute)] flex items-center gap-2">
           <Link href="/" className="hover:underline">Accueil</Link>
