@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ShoppingBag, Heart, User, Search } from "lucide-react";
+import { User } from "lucide-react";
 import { categories } from "@/lib/data";
+import { CartIcon, FavoritesIcon } from "./NavbarIcons";
+import { SearchTrigger } from "@/components/ui/SearchOverlay";
 
 export function Navbar() {
   return (
@@ -30,12 +32,7 @@ export function Navbar() {
           </nav>
 
           <div className="flex items-center gap-1 lg:gap-2">
-            <button
-              className="p-2 lg:p-2.5 hover:bg-black/5 rounded-full transition-colors"
-              aria-label="Rechercher"
-            >
-              <Search className="w-5 h-5" />
-            </button>
+            <SearchTrigger />
             <Link
               href="/compte"
               className="p-2 lg:p-2.5 hover:bg-black/5 rounded-full transition-colors hidden sm:inline-flex"
@@ -43,20 +40,8 @@ export function Navbar() {
             >
               <User className="w-5 h-5" />
             </Link>
-            <Link
-              href="/favoris"
-              className="p-2 lg:p-2.5 hover:bg-black/5 rounded-full transition-colors hidden sm:inline-flex"
-              aria-label="Favoris"
-            >
-              <Heart className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/panier"
-              className="p-2 lg:p-2.5 hover:bg-black/5 rounded-full transition-colors relative"
-              aria-label="Panier"
-            >
-              <ShoppingBag className="w-5 h-5" />
-            </Link>
+            <FavoritesIcon />
+            <CartIcon />
           </div>
         </div>
       </div>

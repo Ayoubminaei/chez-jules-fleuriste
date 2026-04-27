@@ -72,13 +72,13 @@ export default function HomePage() {
       </section>
 
       {/* Categories — beautiful frames */}
-      <section className="mx-auto max-w-7xl px-5 lg:px-10 mt-20 lg:mt-28">
-        <header className="flex items-end justify-between gap-6 mb-8">
+      <section className="mx-auto max-w-7xl px-5 lg:px-10 mt-14 lg:mt-28">
+        <header className="flex items-end justify-between gap-6 mb-6 sm:mb-8">
           <div>
-            <span className="text-[11px] uppercase tracking-[0.25em] text-[color:var(--color-mute)]">
+            <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[color:var(--color-mute)]">
               Nos univers
             </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl lg:text-5xl text-[color:var(--color-forest)] text-balance max-w-2xl">
+            <h2 className="mt-2 text-[26px] sm:text-4xl lg:text-5xl text-[color:var(--color-forest)] text-balance max-w-2xl leading-tight">
               Choisissez l&rsquo;esprit, on s&rsquo;occupe du reste.
             </h2>
           </div>
@@ -90,8 +90,8 @@ export default function HomePage() {
           </Link>
         </header>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
-          <div className="md:col-span-2 md:row-span-2">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+          <div className="col-span-2 md:col-span-2 md:row-span-2">
             <CategoryCard category={heroCat} size="lg" index={0} />
           </div>
           {categories.slice(1).map((c, i) => (

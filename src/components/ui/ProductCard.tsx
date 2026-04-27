@@ -37,7 +37,10 @@ export function ProductCard({
             En attente
           </span>
         )}
-        <FavoriteButton className="absolute top-3 right-3 w-9 h-9 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <FavoriteButton
+          slug={product.slug}
+          className="absolute top-3 right-3 w-9 h-9 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+        />
 
       </div>
 

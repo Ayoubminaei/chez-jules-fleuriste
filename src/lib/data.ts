@@ -4,11 +4,11 @@ export const categories: Category[] = [
   {
     slug: "bouquets-signature",
     name: "Bouquets signature",
-    tagline: "Les compositions de l'atelier",
+    tagline: "Compositions de l'atelier",
     description:
       "Compositions saisonnières montées à la main par Jules, dans l'esprit champêtre et structuré qui fait la signature de la maison.",
     image:
-      "https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1487070183336-b863922373d4?auto=format&fit=crop&w=1600&q=80",
     accent: "forest",
   },
   {
@@ -34,11 +34,11 @@ export const categories: Category[] = [
   {
     slug: "mariage",
     name: "Mariage & événement",
-    tagline: "Sur mesure pour les grands jours",
+    tagline: "Sur mesure",
     description:
       "Bouquets de mariée, arches florales et compositions pour vos cérémonies. Devis personnalisé sous 48h.",
     image:
-      "https://images.unsplash.com/photo-1519378058457-4c29a0a2efac?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1600&q=80",
     accent: "terracotta",
   },
   {
@@ -48,17 +48,17 @@ export const categories: Category[] = [
     description:
       "Couronnes, gerbes et coussins pour accompagner les moments les plus délicats. Livraison directe au lieu de cérémonie.",
     image:
-      "https://images.unsplash.com/photo-1487530811176-3780de880c2d?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1494972308805-463bc619d34e?auto=format&fit=crop&w=1600&q=80",
     accent: "sage",
   },
   {
     slug: "abonnements",
     name: "Abonnements",
-    tagline: "Des fleurs chaque semaine",
+    tagline: "Chaque semaine",
     description:
       "Recevez chez vous un bouquet de saison toutes les semaines, deux semaines ou tous les mois. Sans engagement.",
     image:
-      "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1453747063559-36695c8771bd?auto=format&fit=crop&w=1600&q=80",
     accent: "forest",
   },
 ];

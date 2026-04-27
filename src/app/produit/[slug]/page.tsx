@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Heart, Truck, Leaf, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, Truck, Leaf, Shield } from "lucide-react";
 import {
   products,
   getProduct,
@@ -9,6 +9,9 @@ import {
   getAdjacentProducts,
 } from "@/lib/data";
 import { ProductCard } from "@/components/ui/ProductCard";
+import { FavoriteButton } from "@/components/ui/FavoriteButton";
+import { AddToCartButton } from "@/components/ui/AddToCartButton";
+import { ProductGallery } from "@/components/ui/ProductGallery";
 import { formatPrice } from "@/lib/utils";
 
 export function generateStaticParams() {
@@ -65,32 +68,7 @@ export default async function ProductPage({
       <section className="mx-auto max-w-7xl px-5 lg:px-10 mt-5 lg:mt-8 grid lg:grid-cols-12 gap-6 lg:gap-10">
         {/* Gallery */}
         <div className="lg:col-span-7">
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-            <div className="md:col-span-6 relative aspect-[4/5] md:aspect-[5/4] rounded-[var(--radius-frame)] overflow-hidden bg-black/5">
-              <Image
-                src={product.images[0]}
-                alt={product.name}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 60vw"
-                className="object-cover"
-              />
-            </div>
-            {product.images.slice(1).map((src) => (
-              <div
-                key={src}
-                className="md:col-span-3 relative aspect-square rounded-[var(--radius-soft)] overflow-hidden bg-black/5"
-              >
-                <Image
-                  src={src}
-                  alt={product.name}
-                  fill
-                  sizes="(max-width: 1024px) 50vw, 30vw"
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </div>
+          <ProductGallery images={product.images} alt={product.name} />
         </div>
 
         {/* Info */}
@@ -117,18 +95,12 @@ export default async function ProductPage({
           </div>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
-            <button
-              disabled={!product.inStock}
-              className="flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[color:var(--color-forest)] text-[color:var(--color-cream)] hover:bg-[color:var(--color-forest-soft)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {product.inStock ? "Ajouter au panier" : "Indisponible"}
-            </button>
-            <button
-              aria-label="Ajouter aux favoris"
-              className="w-12 h-12 rounded-full border border-black/10 bg-white hover:bg-[color:var(--color-cream)] flex items-center justify-center transition-colors"
-            >
-              <Heart className="w-5 h-5" />
-            </button>
+            <AddToCartButton slug={product.slug} disabled={!product.inStock} />
+            <FavoriteButton
+              slug={product.slug}
+              size={20}
+              className="w-12 h-12 border border-black/10 bg-white hover:bg-[color:var(--color-cream)]"
+            />
           </div>
 
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
