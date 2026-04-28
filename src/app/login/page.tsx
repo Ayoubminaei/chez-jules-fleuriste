@@ -7,9 +7,9 @@ export const metadata = { title: "Connexion" };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; sent?: string }>;
+  searchParams: Promise<{ next?: string }>;
 }) {
-  const { next, sent } = await searchParams;
+  const { next } = await searchParams;
   const configured = isSupabaseConfigured();
 
   return (
@@ -18,7 +18,7 @@ export default async function LoginPage({
         Bon retour
       </h1>
       <p className="mt-2 text-sm text-[color:var(--color-mute)] text-center">
-        Recevez un lien magique par email.
+        Recevez un code à 6 chiffres par email.
       </p>
 
       <div className="mt-8 rounded-[var(--radius-frame)] bg-[color:var(--color-cream)] border border-black/5 p-6 sm:p-8">
@@ -31,15 +31,6 @@ export default async function LoginPage({
               Définissez <code>NEXT_PUBLIC_SUPABASE_URL</code> et{" "}
               <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> dans votre projet
               Vercel pour activer la connexion.
-            </p>
-          </div>
-        ) : sent ? (
-          <div className="text-center">
-            <h2 className="text-lg font-[family-name:var(--font-display)] text-[color:var(--color-forest)]">
-              Email envoyé
-            </h2>
-            <p className="mt-2 text-sm text-[color:var(--color-mute)]">
-              Cliquez sur le lien reçu pour finaliser la connexion.
             </p>
           </div>
         ) : (
