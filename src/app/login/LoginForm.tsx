@@ -62,29 +62,29 @@ export function LoginForm({ next }: { next?: string }) {
       <form onSubmit={verify} className="space-y-4">
         <div>
           <label className="text-xs uppercase tracking-widest text-[color:var(--color-mute)]">
-            Code à 6 chiffres
+            Code de connexion
           </label>
           <input
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            maxLength={6}
+            maxLength={10}
             required
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            className="mt-1.5 w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] focus:outline-none focus:border-[color:var(--color-forest)]"
+            className="mt-1.5 w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-center text-2xl font-mono tracking-[0.4em] focus:outline-none focus:border-[color:var(--color-forest)]"
             placeholder="••••••"
             autoComplete="one-time-code"
             autoFocus
           />
           <p className="mt-2 text-xs text-[color:var(--color-mute)]">
-            Code envoyé à <strong>{email}</strong>. Vérifiez vos spams si rien
-            n&rsquo;arrive sous 1&nbsp;minute.
+            Code envoyé à <strong>{email}</strong>. Tapez les chiffres reçus.
+            Vérifiez vos spams si rien n&rsquo;arrive sous 1&nbsp;minute.
           </p>
         </div>
         <button
           type="submit"
-          disabled={submitting || code.length !== 6}
+          disabled={submitting || code.length < 6}
           className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[color:var(--color-forest)] text-[color:var(--color-cream)] hover:bg-[color:var(--color-forest-soft)] transition-colors disabled:opacity-60 text-sm"
         >
           {submitting ? (

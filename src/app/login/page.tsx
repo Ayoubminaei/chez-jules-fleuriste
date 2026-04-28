@@ -18,7 +18,7 @@ export default async function LoginPage({
         Bon retour
       </h1>
       <p className="mt-2 text-sm text-[color:var(--color-mute)] text-center">
-        Recevez un code à 6 chiffres par email.
+        Recevez un code par email.
       </p>
 
       <div className="mt-8 rounded-[var(--radius-frame)] bg-[color:var(--color-cream)] border border-black/5 p-6 sm:p-8">
