@@ -3,15 +3,27 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Minus, Plus, Trash2, ArrowRight, Loader2 } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowRight, Loader2, X, Check } from "lucide-react";
 import { useCart } from "@/lib/store";
 import { getProduct } from "@/lib/data";
 import { formatPrice } from "@/lib/utils";
+
+type Promo = {
+  code: string;
+  kind: "percent" | "fixed" | "free_shipping";
+  value_int: number;
+  discount_cents: number;
+  free_shipping: boolean;
+};
 
 export function CartView() {
   const { items, setQty, remove, clear, hydrated } = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<Promo | null>(null);
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
 
   async function checkout() {
     setError(null);
@@ -20,7 +32,7 @@ export function CartView() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, promo: promo?.code }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -36,6 +48,29 @@ export function CartView() {
       setError(e instanceof Error ? e.message : "Erreur inconnue");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function applyPromo(subtotalCents: number) {
+    setPromoError(null);
+    setPromoBusy(true);
+    try {
+      const res = await fetch("/api/promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: promoInput,
+          subtotal_cents: subtotalCents,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Code invalide");
+      setPromo(json as Promo);
+      setPromoInput("");
+    } catch (e) {
+      setPromoError(e instanceof Error ? e.message : "Code invalide");
+    } finally {
+      setPromoBusy(false);
     }
   }
 
@@ -80,8 +115,11 @@ export function CartView() {
     (s, l) => s + l.product.priceCents * l.qty,
     0
   );
-  const shippingCents = subtotal >= 8000 ? 0 : 800;
-  const total = subtotal + shippingCents;
+  const promoFreeShipping = promo?.free_shipping ?? false;
+  const baseShipping = subtotal >= 8000 ? 0 : 800;
+  const shippingCents = promoFreeShipping ? 0 : baseShipping;
+  const discount = promo?.discount_cents ?? 0;
+  const total = Math.max(0, subtotal - discount + shippingCents);
 
   return (
     <div className="mt-8 grid lg:grid-cols-12 gap-6 lg:gap-10">
@@ -170,18 +208,73 @@ export function CartView() {
               <dt className="text-[color:var(--color-mute)]">Sous-total</dt>
               <dd className="tabular-nums">{formatPrice(subtotal)}</dd>
             </div>
+            {promo && discount > 0 && (
+              <div className="flex justify-between text-[color:var(--color-forest)]">
+                <dt className="inline-flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5" /> Code {promo.code}
+                </dt>
+                <dd className="tabular-nums">−{formatPrice(discount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt className="text-[color:var(--color-mute)]">Livraison</dt>
               <dd className="tabular-nums">
                 {shippingCents === 0 ? "Offerte" : formatPrice(shippingCents)}
               </dd>
             </div>
-            {shippingCents > 0 && (
+            {!promoFreeShipping && baseShipping > 0 && (
               <p className="text-xs text-[color:var(--color-mute)] pt-1">
                 Plus que {formatPrice(8000 - subtotal)} pour la livraison offerte.
               </p>
             )}
           </dl>
+
+          <div className="mt-4 pt-4 border-t border-black/10">
+            {promo ? (
+              <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-full bg-[color:var(--color-sage)]/20 text-sm">
+                <span className="font-mono">{promo.code}</span>
+                <button
+                  type="button"
+                  onClick={() => setPromo(null)}
+                  className="p-1 -m-1 hover:bg-black/5 rounded-full"
+                  aria-label="Retirer le code"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <label className="text-[11px] uppercase tracking-widest text-[color:var(--color-mute)]">
+                  Code promo
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                    placeholder="PRINTEMPS24"
+                    className="flex-1 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-mono focus:outline-none focus:border-[color:var(--color-forest)]"
+                  />
+                  <button
+                    type="button"
+                    disabled={!promoInput || promoBusy}
+                    onClick={() => applyPromo(subtotal)}
+                    className="px-4 py-2 rounded-full bg-[color:var(--color-cream)] border border-black/10 text-sm hover:bg-white disabled:opacity-50"
+                  >
+                    {promoBusy ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Appliquer"
+                    )}
+                  </button>
+                </div>
+                {promoError && (
+                  <p className="text-xs text-[color:var(--color-terracotta)]">
+                    {promoError}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
           <div className="mt-4 pt-4 border-t border-black/10 flex items-baseline justify-between">
             <span className="text-sm uppercase tracking-widest text-[color:var(--color-mute)]">
               Total

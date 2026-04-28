@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { Suspense } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { SiteBanner } from "@/components/layout/SiteBanner";
 import { Providers } from "@/lib/store";
 import "./globals.css";
 
@@ -43,6 +45,9 @@ export default function RootLayout({
     <html lang="fr" className={`${fraunces.variable} ${inter.variable}`}>
       <body className="min-h-screen flex flex-col">
         <Providers>
+          <Suspense fallback={null}>
+            <SiteBanner />
+          </Suspense>
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
